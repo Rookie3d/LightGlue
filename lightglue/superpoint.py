@@ -147,7 +147,7 @@ class SuperPoint(Extractor):
         if self.conf.max_num_keypoints is not None and self.conf.max_num_keypoints <= 0:
             raise ValueError("max_num_keypoints must be positive or None")
 
-    def forward(self, data: dict) -> dict:
+    def forward(self, data: dict, invalid_mask = None) -> dict:
         """Compute keypoints, scores, descriptors for image"""
         for key in self.required_data_keys:
             assert key in data, f"Missing key {key} in data"
@@ -184,6 +184,10 @@ class SuperPoint(Extractor):
             scores[:, :, :pad] = -1
             scores[:, -pad:] = -1
             scores[:, :, -pad:] = -1
+
+        # Discard the keypoints by invalid_mask
+        if invalid_mask is not None:
+            scores[invalid_mask] = -1
 
         # Extract keypoints
         best_kp = torch.where(scores > self.conf.detection_threshold)

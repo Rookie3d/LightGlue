@@ -195,7 +195,7 @@ class SIFT(Extractor):
 
         return pred
 
-    def forward(self, data: dict) -> dict:
+    def forward(self, data: dict, invalid_mask = None) -> dict:
         image = data["image"]
         if image.shape[1] == 3:
             image = rgb_to_grayscale(image)

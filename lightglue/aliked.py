@@ -129,6 +129,7 @@ class DKD(nn.Module):
         scores_map: torch.Tensor,
         sub_pixel: bool = True,
         image_size: Optional[torch.Tensor] = None,
+        invalid_mask: Optional[torch.Tensor] = None,
     ):
         """
         :param scores_map: Bx1xHxW
@@ -143,6 +144,9 @@ class DKD(nn.Module):
         # remove border
         nms_scores[:, :, : self.radius, :] = 0
         nms_scores[:, :, :, : self.radius] = 0
+        
+        nms_scores[invalid_mask[:, None]] = 0 
+        
         if image_size is not None:
             for i in range(scores_map.shape[0]):
                 w, h = image_size[i].long()
@@ -737,13 +741,13 @@ class ALIKED(Extractor):
 
         return feature_map, score_map
 
-    def forward(self, data: dict) -> dict:
+    def forward(self, data: dict, invalid_mask = None) -> dict:
         image = data["image"]
         if image.shape[1] == 1:
             image = grayscale_to_rgb(image)
         feature_map, score_map = self.extract_dense_map(image)
         keypoints, kptscores, scoredispersitys = self.dkd(
-            score_map, image_size=data.get("image_size")
+            score_map, image_size=data.get("image_size"), invalid_mask=invalid_mask,
         )
         descriptors, offsets = self.desc_head(feature_map, keypoints)
 
