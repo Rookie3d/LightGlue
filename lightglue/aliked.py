@@ -145,7 +145,8 @@ class DKD(nn.Module):
         nms_scores[:, :, : self.radius, :] = 0
         nms_scores[:, :, :, : self.radius] = 0
         
-        nms_scores[invalid_mask[:, None]] = 0 
+        if invalid_mask is not None:
+            nms_scores[invalid_mask[:, None]] = 0 
         
         if image_size is not None:
             for i in range(scores_map.shape[0]):
